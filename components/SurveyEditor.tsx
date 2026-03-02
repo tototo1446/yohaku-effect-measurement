@@ -44,6 +44,8 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
   const [editedSurvey, setEditedSurvey] = useState<Survey>(initializeSurvey(survey));
   const [selectedQuestionIndex, setSelectedQuestionIndex] = useState<number | null>(null);
   const [isEditingQuestion, setIsEditingQuestion] = useState(false);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [questionFormData, setQuestionFormData] = useState<Partial<Question>>({
     title: '',
     type: 'radio',
@@ -145,6 +147,15 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
     handleUpdateSurvey({ questions: updatedQuestions });
   };
 
+  const handleReorderQuestion = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    const updatedQuestions = [...editedSurvey.questions];
+    const [moved] = updatedQuestions.splice(fromIndex, 1);
+    updatedQuestions.splice(toIndex, 0, moved);
+    handleUpdateSurvey({ questions: updatedQuestions });
+    setSelectedQuestionIndex(toIndex);
+  };
+
   const handleMoveQuestion = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= editedSurvey.questions.length) return;
@@ -211,15 +222,44 @@ const SurveyEditor: React.FC<SurveyEditorProps> = ({ survey, onSave, onCancel })
   const renderQuestionPreview = (question: Question, index: number) => {
     const isSelected = selectedQuestionIndex === index;
     
+    const isDragging = dragIndex === index;
+    const isDragOver = dragOverIndex === index && dragIndex !== index;
+
     return (
       <div
         key={question.id}
+        draggable={true}
+        onDragStart={(e) => {
+          setDragIndex(index);
+          e.dataTransfer.effectAllowed = 'move';
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'move';
+          setDragOverIndex(index);
+        }}
+        onDragLeave={() => {
+          setDragOverIndex(null);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (dragIndex !== null) {
+            handleReorderQuestion(dragIndex, index);
+          }
+          setDragIndex(null);
+          setDragOverIndex(null);
+        }}
+        onDragEnd={() => {
+          setDragIndex(null);
+          setDragOverIndex(null);
+        }}
         onClick={() => handleSelectQuestion(index)}
         className={`bg-white rounded-lg border-2 p-6 mb-4 cursor-pointer transition-all ${
           isSelected
             ? 'border-sky-500 shadow-lg'
             : 'border-slate-200 hover:border-slate-300'
-        }`}
+        } ${isDragging ? 'opacity-40' : ''} ${isDragOver ? 'border-sky-400 shadow-md ring-2 ring-sky-200' : ''}`}
+        style={isDragOver ? { borderTopWidth: '4px', borderTopColor: '#38bdf8' } : {}}
       >
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
