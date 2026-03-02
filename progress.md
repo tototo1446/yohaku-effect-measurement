@@ -54,3 +54,12 @@
 - [x] App.tsx: organizationsForAdmin state 追加、getOrganizations() でSupabaseから取得
 - [x] Dashboard / RespondentGrowthAnalysis に実データを渡すよう変更
 - [x] loadOrganizationById の MOCK_ORGS フォールバックを削除
+
+## 2025-03-02: 実運用向けテスト項目の作成
+
+- [x] docs/PRODUCTION_READINESS_TEST.md: 11カテゴリ・80項目以上のテスト項目を新規作成
+- [x] tasks.md: 実運用向けテストと改善タスクを追加
+- [x] docs/PRODUCTION_READINESS_TEST.csv: スプレッドシート用（Excel・Googleスプレッドシートで結果記入可能）
+- [x] H2-1 ビルド確認: 合格（npm run build 成功）
+- [x] H2-2 プレビュー確認: 合格（http://localhost:4173/ で起動）
+- [ ] 残りテスト項目の実施と不具合修正（これから）

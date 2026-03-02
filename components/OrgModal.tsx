@@ -421,6 +421,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
                         required
                         readOnly={false}
                         disabled={false}
+                        autoComplete="off"
                         placeholder="法人のログインID"
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                       />
@@ -438,6 +439,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
                         value={formData.password}
                         onChange={handleInputChange}
                         required={!org}
+                        autoComplete="new-password"
                         placeholder={org ? "変更する場合のみ入力" : "パスワードを入力"}
                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none"
                       />
