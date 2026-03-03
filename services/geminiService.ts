@@ -1,6 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
-import { LiteracyScores, SurveyResponse } from "../types";
+import { SurveyResponse } from "../types";
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
 if (!apiKey) {
@@ -235,57 +235,42 @@ function buildAggregationContext(agg: ResponseAggregation): string {
 }
 
 export async function getLiteracyInsight(
-  scores: LiteracyScores,
   name: string,
-  aggregation?: ResponseAggregation
+  aggregation: ResponseAggregation
 ) {
   if (!ai) {
     return "AI機能を使用するには、APIキーを環境変数に設定してください。";
   }
 
-  const overallScore = Math.round(
-    (scores.basics + scores.prompting + scores.ethics + scores.tools + scores.automation) / 5
-  );
+  const aggregationContext = buildAggregationContext(aggregation);
 
-  // ランクレベルの判定
-  let rankLabel = 'ビギナー';
-  if (overallScore >= 80) rankLabel = 'エキスパート';
-  else if (overallScore >= 60) rankLabel = 'アドバンス';
-  else if (overallScore >= 40) rankLabel = 'プラクティス';
-  else if (overallScore >= 20) rankLabel = 'ベーシック';
+  if (!aggregationContext) {
+    return "分析に必要なアンケート回答データがありません。";
+  }
 
-  const aggregationContext = aggregation ? buildAggregationContext(aggregation) : '';
+  const prompt = `あなたは企業のAI活用推進コンサルタントです。以下のアンケート回答データに基づき、「${name}」への戦略的アドバイスを生成してください。
 
-  const prompt = `あなたは企業のAI活用推進コンサルタントです。以下のデータに基づき、「${name}」への戦略的アドバイスを生成してください。
-
-■ 総合スコア: ${overallScore}/100（${rankLabel}レベル）
-
-■ 5次元スコア（各100点満点）:
-- 基礎知識: ${scores.basics}
-- プロンプト工学: ${scores.prompting}
-- 倫理・リスク: ${scores.ethics}
-- ツール選定: ${scores.tools}
-- 自動化/活用: ${scores.automation}
-${aggregationContext ? `\n■ アンケート回答の集計データ（回答者数: ${aggregation!.totalRespondents}名）:\n${aggregationContext}` : ''}
+■ アンケート回答の集計データ（回答者数: ${aggregation.totalRespondents}名）:
+${aggregationContext}
 
 **必ずMarkdown形式で出力してください。** 見出しは ##、箇条書きは -、強調は ** を使用してください。
 
 以下のセクション構成で、具体的かつ実用的なアドバイスを出力してください:
 
 ## 現状分析
-${aggregation ? '回答データから見える組織のAI活用の現状を3〜4行で分析。活用頻度、ツール利用傾向、用途の偏りなどに言及。' : 'スコアから見える現状を2〜3行で分析。'}
+回答データから見える組織のAI活用の現状を3〜4行で分析。活用頻度、ツール利用傾向、用途の偏りなどに言及。
 
 ## 強み
-具体的な強みを2〜3点、箇条書きで。${aggregation ? 'データの裏付けを添えて。' : ''}
+具体的な強みを2〜3点、箇条書きで。データの裏付けを添えて。
 
 ## 課題
-改善が必要な点を2〜3点、箇条書きで。${aggregation ? 'データの裏付けを添えて。' : ''}
+改善が必要な点を2〜3点、箇条書きで。データの裏付けを添えて。
 
 ## 推奨アクションプラン
-優先度の高い順に3〜5つの具体的なアクションを提案。${aggregation ? '社員の声（フィードバック）やニーズも考慮し、' : ''}実行可能で具体的な内容にしてください。各アクションは「何を」「どのように」「期待される効果」を含めてください。
-${aggregation ? `
+優先度の高い順に3〜5つの具体的なアクションを提案。社員の声（フィードバック）やニーズも考慮し、実行可能で具体的な内容にしてください。各アクションは「何を」「どのように」「期待される効果」を含めてください。
+
 ## 注目ポイント
-データから読み取れる特に注目すべき傾向やリスク、差別化のチャンスを1〜2点。` : ''}
+データから読み取れる特に注目すべき傾向やリスク、差別化のチャンスを1〜2点。
 
 ※ 各セクションは簡潔に。全体で600文字程度を目安にしてください。
 ※ 出力は必ずMarkdown形式のみとし、コードブロック・AIであることの説明・免責事項・補足説明は含めないでください。`;

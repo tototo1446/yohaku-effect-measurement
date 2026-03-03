@@ -2,10 +2,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend, BarChart, Bar } from 'recharts';
-import { LiteracyScores, Organization, SurveyResponse, Survey } from '../types';
+import { Organization, SurveyResponse, Survey } from '../types';
 import { getLiteracyInsight, aggregateResponses } from '../services/geminiService';
 import { getResponsesByOrg, getResponsesByOrgFromSupabase } from '../services/surveyResponseService';
-import { calculateOrgAverageScore, calculateOverallScore, calculateScoreFromResponse } from '../services/literacyScoreService';
+import { calculateOverallScore, calculateScoreFromResponse } from '../services/literacyScoreService';
 import { getRankFromScore } from '../services/rankCalculationService';
 import { getRankDefinition } from '../services/rankDefinitionService';
 import { getOrganizations } from '../services/organizationService';
@@ -40,14 +40,6 @@ const Dashboard: React.FC<DashboardProps> = ({
   const orgResponses = responses.filter(r => r.orgId === targetOrgId);
   const rankDefinition = viewingOrg?.rankDefinition || org.rankDefinition || getRankDefinition(targetOrgId);
 
-  // 回答データからスコアを計算（AI分析・ランク分布用）
-  const calculatedScores = orgResponses.length > 0
-    ? calculateOrgAverageScore(targetOrgId, orgResponses, rankDefinition || undefined)
-    : null;
-  const displayScores: LiteracyScores = calculatedScores || (viewingOrg
-    ? { basics: viewingOrg.avgScore + 5, prompting: viewingOrg.avgScore - 10, ethics: viewingOrg.avgScore + 2, tools: viewingOrg.avgScore, automation: viewingOrg.avgScore - 5 }
-    : { basics: org.avgScore + 5, prompting: org.avgScore - 10, ethics: org.avgScore + 2, tools: org.avgScore, automation: org.avgScore - 5 });
-
   const minRequiredRespondents = (viewingOrg || org).minRequiredRespondents ?? 5;
   const hasEnoughDataForInsight = orgResponses.length >= minRequiredRespondents;
   const getInsightStorageKey = (orgId: string) => `yohaku_ai_insight_${orgId}`;
@@ -57,8 +49,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     setLoadingInsight(true);
     try {
       const promptName = viewingOrg ? `${viewingOrg.name}（組織全体）` : org.name;
-      const aggregation = orgResponses.length > 0 ? aggregateResponses(orgResponses) : undefined;
-      const text = await getLiteracyInsight(displayScores, promptName, aggregation);
+      const aggregation = aggregateResponses(orgResponses);
+      const text = await getLiteracyInsight(promptName, aggregation);
       const result = text || '';
       setInsight(result);
       try {
@@ -467,7 +459,7 @@ const Dashboard: React.FC<DashboardProps> = ({
           ) : loadingInsight ? (
             <div className="flex flex-col items-center justify-center h-full space-y-2">
               <div className="w-8 h-8 border-4 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
-              <p className="text-slate-500 italic">スコアをAIが解析しています...</p>
+              <p className="text-slate-500 italic">アンケート結果をAIが分析しています...</p>
             </div>
           ) : (
             <div className="ai-insight-markdown">
