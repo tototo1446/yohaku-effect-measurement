@@ -190,11 +190,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     const rate = memberCount > 0 ? Math.round((count / memberCount) * 100) : 0;
     return {
       rankDistribution: [
-        { rank: 1, name: 'ランク1', count: dist[0], fill: '#94a3b8' },
-        { rank: 2, name: 'ランク2', count: dist[1], fill: '#64748b' },
-        { rank: 3, name: 'ランク3', count: dist[2], fill: '#6366f1' },
-        { rank: 4, name: 'ランク4', count: dist[3], fill: '#8b5cf6' },
-        { rank: 5, name: 'ランク5', count: dist[4], fill: '#22c55e' },
+        { rank: 1, name: rankDefinition?.ranks?.[0]?.name || 'ランク1', count: dist[0], fill: '#94a3b8' },
+        { rank: 2, name: rankDefinition?.ranks?.[1]?.name || 'ランク2', count: dist[1], fill: '#64748b' },
+        { rank: 3, name: rankDefinition?.ranks?.[2]?.name || 'ランク3', count: dist[2], fill: '#6366f1' },
+        { rank: 4, name: rankDefinition?.ranks?.[3]?.name || 'ランク4', count: dist[3], fill: '#8b5cf6' },
+        { rank: 5, name: rankDefinition?.ranks?.[4]?.name || 'ランク5', count: dist[4], fill: '#22c55e' },
       ],
       averageRank: avgRank,
       responseRate: rate,
