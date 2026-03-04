@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Organization } from '../types';
 import { generateRandomOrgId, generateRandomSlug } from '../utils/idGenerator';
 import { checkNameAvailability, checkSlugAvailability } from '../services/organizationService';
+import { DEFAULT_AI_SYSTEM_PROMPT } from '../services/geminiService';
 
 interface OrgModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
     accountId: '',
     password: '',
     minRequiredRespondents: '' as string | number,
+    aiSystemPrompt: '',
   });
 
   const [logoPreview, setLogoPreview] = useState<string>('');
@@ -43,6 +45,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
         accountId: org.accountId || '',
         password: '', // セキュリティのため、編集時は空にする
         minRequiredRespondents: org.minRequiredRespondents ?? '',
+        aiSystemPrompt: org.aiSystemPrompt || DEFAULT_AI_SYSTEM_PROMPT,
       });
       setLogoPreview(org.logo || '');
       setGeneratedId(''); // 編集時はIDを表示しない
@@ -63,6 +66,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
         accountId: '',
         password: '',
         minRequiredRespondents: 5, // デフォルト5名
+        aiSystemPrompt: DEFAULT_AI_SYSTEM_PROMPT,
       });
       setLogoPreview('');
     }
@@ -149,6 +153,12 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
       : Number(formData.minRequiredRespondents);
     const minRequiredRespondents = minVal != null && !Number.isNaN(minVal) && minVal >= 1 ? minVal : undefined;
 
+    // AIプロンプトがデフォルトと同じ場合はnull（DB側でNULL保存してフォールバック）
+    const aiPromptValue = formData.aiSystemPrompt.trim();
+    const aiSystemPrompt = aiPromptValue && aiPromptValue !== DEFAULT_AI_SYSTEM_PROMPT
+      ? aiPromptValue
+      : undefined;
+
     onSave({
       name: formData.name.trim(),
       slug: formData.slug.trim(),
@@ -161,6 +171,7 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
       accountId: formData.accountId.trim(),
       password: formData.password.trim() || undefined, // 編集時でパスワードが空の場合は変更しない
       minRequiredRespondents,
+      aiSystemPrompt,
     }, generatedId || undefined); // 新規作成時のみ生成されたIDを渡す
     
     onClose();
@@ -413,6 +424,35 @@ const OrgModal: React.FC<OrgModalProps> = ({ isOpen, onClose, onSave, org }) => 
                   <p className="mt-1 text-xs text-slate-500">
                     この人数以上の回答が集まるまでAI戦略アドバイスは表示されません。空欄の場合は5名がデフォルトです
                   </p>
+                </div>
+
+                {/* AI分析プロンプト */}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    AI分析プロンプト
+                  </label>
+                  <textarea
+                    name="aiSystemPrompt"
+                    value={formData.aiSystemPrompt}
+                    onChange={handleInputChange}
+                    rows={10}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent outline-none font-mono text-xs resize-y"
+                    placeholder="AI分析で使用するシステムプロンプトを入力"
+                  />
+                  <div className="mt-1 flex items-start justify-between gap-2">
+                    <p className="text-xs text-slate-500">
+                      利用可能な変数: <code className="bg-slate-100 px-1 rounded">{'{{name}}'}</code>（法人名）、
+                      <code className="bg-slate-100 px-1 rounded">{'{{totalRespondents}}'}</code>（回答者数）、
+                      <code className="bg-slate-100 px-1 rounded">{'{{aggregationContext}}'}</code>（集計データ）
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, aiSystemPrompt: DEFAULT_AI_SYSTEM_PROMPT }))}
+                      className="text-xs text-sky-500 hover:text-sky-700 whitespace-nowrap flex-shrink-0"
+                    >
+                      デフォルトに戻す
+                    </button>
+                  </div>
                 </div>
 
                 {/* アカウントIDとパスワード */}

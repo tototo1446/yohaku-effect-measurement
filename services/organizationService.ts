@@ -79,6 +79,7 @@ export async function getOrganizations(): Promise<Organization[]> {
         email: (org as any).email, // メールアドレスを取得
         minRequiredRespondents: (org as any).min_required_respondents ?? undefined,
         logo: (org as any).logo || undefined,
+        aiSystemPrompt: (org as any).ai_system_prompt ?? undefined,
       };
     }));
 
@@ -174,6 +175,7 @@ export async function getOrganizationById(id: string): Promise<Organization | nu
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
         logo: (data as any).logo || undefined,
+        aiSystemPrompt: (data as any).ai_system_prompt ?? undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -256,6 +258,7 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
         logo: (data as any).logo || undefined,
+        aiSystemPrompt: (data as any).ai_system_prompt ?? undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -301,6 +304,9 @@ export async function createOrganization(
     if (orgData.phone != null) {
       insertData.phone = orgData.phone;
     }
+    if (orgData.aiSystemPrompt != null) {
+      (insertData as any).ai_system_prompt = orgData.aiSystemPrompt;
+    }
 
     const { data, error } = await supabase
       .from('organizations')
@@ -331,6 +337,7 @@ export async function createOrganization(
       phone: data.phone ?? orgData.phone,
       email: data.email || orgData.email,
       minRequiredRespondents: data.min_required_respondents ?? orgData.minRequiredRespondents,
+      aiSystemPrompt: (data as any).ai_system_prompt ?? orgData.aiSystemPrompt,
     };
   } catch (error) {
     console.error('法人の作成に失敗しました:', error);
@@ -367,6 +374,7 @@ export async function updateOrganization(
     if (orgData.website !== undefined) updateData.website = orgData.website ?? null;
     if (orgData.address !== undefined) updateData.address = orgData.address ?? null;
     if (orgData.phone !== undefined) updateData.phone = orgData.phone ?? null;
+    if (orgData.aiSystemPrompt !== undefined) (updateData as any).ai_system_prompt = orgData.aiSystemPrompt ?? null;
 
     const { data, error } = await supabase
       .from('organizations')
@@ -433,6 +441,7 @@ export async function updateOrganization(
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
         logo: (data as any).logo || undefined,
+        aiSystemPrompt: (data as any).ai_system_prompt ?? undefined,
       };
   } catch (error) {
     console.error('法人の更新に失敗しました:', error);
@@ -611,6 +620,7 @@ export async function getOrganizationByAccountId(accountId: string): Promise<Org
         accountId: (slugData as any).account_id || slugData.slug,
         password: (slugData as any).password, // パスワードを取得
         email: (slugData as any).email, // メールアドレスを取得
+        aiSystemPrompt: (slugData as any).ai_system_prompt ?? undefined,
       };
     }
 
@@ -659,6 +669,7 @@ export async function getOrganizationByAccountId(accountId: string): Promise<Org
         email: (data as any).email, // メールアドレスを取得
         minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
         logo: (data as any).logo || undefined,
+        aiSystemPrompt: (data as any).ai_system_prompt ?? undefined,
       };
   } catch (error) {
     console.error('法人の取得に失敗しました:', error);
@@ -779,6 +790,7 @@ export async function verifyPasswordResetToken(resetToken: string): Promise<Orga
       email: (data as any).email, // メールアドレスを取得
       minRequiredRespondents: (data as any).min_required_respondents ?? undefined,
       logo: (data as any).logo || undefined,
+      aiSystemPrompt: (data as any).ai_system_prompt ?? undefined,
     };
   } catch (error) {
     console.error('パスワード再設定トークンの検証に失敗しました:', error);

@@ -30,6 +30,7 @@ export interface Organization {
   password?: string; // パスワード（ハッシュ化されたもの）
   rankDefinition?: RankDefinition; // 法人毎のランク定義
   minRequiredRespondents?: number; // AI戦略アドバイス表示に必要な最小回答者数（未設定時は5）
+  aiSystemPrompt?: string; // AI分析のカスタムシステムプロンプト
 }
 
 export interface User {

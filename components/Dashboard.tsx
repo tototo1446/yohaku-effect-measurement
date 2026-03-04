@@ -50,7 +50,8 @@ const Dashboard: React.FC<DashboardProps> = ({
     try {
       const promptName = viewingOrg ? `${viewingOrg.name}（組織全体）` : org.name;
       const aggregation = aggregateResponses(orgResponses);
-      const text = await getLiteracyInsight(promptName, aggregation);
+      const customPrompt = (viewingOrg || org).aiSystemPrompt;
+      const text = await getLiteracyInsight(promptName, aggregation, customPrompt);
       const result = text || '';
       setInsight(result);
       try {

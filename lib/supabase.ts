@@ -49,6 +49,7 @@ export interface Database {
           updated_at: string;
           password_reset_token: string | null;
           password_reset_expires_at: string | null;
+          ai_system_prompt: string | null;
         };
         Insert: {
           id?: string;
@@ -67,6 +68,7 @@ export interface Database {
           updated_at?: string;
           password_reset_token?: string | null;
           password_reset_expires_at?: string | null;
+          ai_system_prompt?: string | null;
         };
         Update: {
           id?: string;
@@ -85,6 +87,7 @@ export interface Database {
           updated_at?: string;
           password_reset_token?: string | null;
           password_reset_expires_at?: string | null;
+          ai_system_prompt?: string | null;
         };
         Relationships: [];
       };

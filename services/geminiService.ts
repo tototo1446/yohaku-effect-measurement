@@ -234,24 +234,11 @@ function buildAggregationContext(agg: ResponseAggregation): string {
   return sections.join('\n\n');
 }
 
-export async function getLiteracyInsight(
-  name: string,
-  aggregation: ResponseAggregation
-) {
-  if (!ai) {
-    return "AI機能を使用するには、APIキーを環境変数に設定してください。";
-  }
+/** デフォルトのAI分析システムプロンプト（テンプレート変数対応） */
+export const DEFAULT_AI_SYSTEM_PROMPT = `あなたは企業のAI活用推進コンサルタントです。以下のアンケート回答データに基づき、「{{name}}」への戦略的アドバイスを生成してください。
 
-  const aggregationContext = buildAggregationContext(aggregation);
-
-  if (!aggregationContext) {
-    return "分析に必要なアンケート回答データがありません。";
-  }
-
-  const prompt = `あなたは企業のAI活用推進コンサルタントです。以下のアンケート回答データに基づき、「${name}」への戦略的アドバイスを生成してください。
-
-■ アンケート回答の集計データ（回答者数: ${aggregation.totalRespondents}名）:
-${aggregationContext}
+■ アンケート回答の集計データ（回答者数: {{totalRespondents}}名）:
+{{aggregationContext}}
 
 **必ずMarkdown形式で出力してください。** 見出しは ##、箇条書きは -、強調は ** を使用してください。
 
@@ -274,6 +261,38 @@ ${aggregationContext}
 
 ※ 各セクションは簡潔に。全体で600文字程度を目安にしてください。
 ※ 出力は必ずMarkdown形式のみとし、コードブロック・AIであることの説明・免責事項・補足説明は含めないでください。`;
+
+/** テンプレート変数 {{変数名}} を実際の値に置換する */
+function interpolatePrompt(
+  template: string,
+  variables: Record<string, string>
+): string {
+  return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return variables[key] !== undefined ? variables[key] : match;
+  });
+}
+
+export async function getLiteracyInsight(
+  name: string,
+  aggregation: ResponseAggregation,
+  customSystemPrompt?: string | null
+) {
+  if (!ai) {
+    return "AI機能を使用するには、APIキーを環境変数に設定してください。";
+  }
+
+  const aggregationContext = buildAggregationContext(aggregation);
+
+  if (!aggregationContext) {
+    return "分析に必要なアンケート回答データがありません。";
+  }
+
+  const template = customSystemPrompt?.trim() || DEFAULT_AI_SYSTEM_PROMPT;
+  const prompt = interpolatePrompt(template, {
+    name,
+    totalRespondents: String(aggregation.totalRespondents),
+    aggregationContext,
+  });
 
   try {
     const response = await ai.models.generateContent({
